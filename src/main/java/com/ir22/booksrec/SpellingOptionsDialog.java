@@ -1,11 +1,4 @@
-/*
- *   This file is part of the computer assignment for the
- *   Information Retrieval course at KTH.
- *
- *   Dmytro Kalpakchi, 2018
- */
-
-package ir;
+package com.ir22.booksrec;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;

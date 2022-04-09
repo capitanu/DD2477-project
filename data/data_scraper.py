@@ -39,8 +39,8 @@ mapping = {
 if not es.indices.exists(index="books"):
     es.indices.create(index="books", body = mapping)
 
-start_index = 29496443
-number_of_books = 1
+start_index = 29496494
+number_of_books = 100
 for i in range(start_index, start_index + number_of_books):
     fp = urllib.request.urlopen("https://www.goodreads.com/book/show/{}".format(i))
     mybytes = fp.read()

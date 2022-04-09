@@ -1,12 +1,4 @@
-/*
- *   This file is part of the computer assignment for the
- *   Information Retrieval course at KTH.
- *
- *   First version: Johan Boye, 2012
- *   Additions: Hedvig Kjellström, 2012-14
- *   Modifications: Johan Boye, 2016
- */
-package ir;
+package com.ir22.booksrec;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -101,7 +93,7 @@ public class SearchGUI extends JFrame {
         resultWindow.setLayout(new BoxLayout(resultWindow, BoxLayout.Y_AXIS));
         resultPane.setLayout(new ScrollPaneLayout());
         resultPane.setBorder( new EmptyBorder(10,10,10,0) );
-        resultPane.setPreferredSize( new Dimension(400, 450 ));
+        resultPane.setPreferredSize( new Dimension(400, 1800 ));
         getContentPane().add(p, BorderLayout.CENTER);
         // Top menus
         menuBar.add( fileMenu );
@@ -136,19 +128,9 @@ public class SearchGUI extends JFrame {
         p1.setLayout(new BoxLayout(p1, BoxLayout.X_AXIS));
         p1.add( new JLabel( new ImageIcon( engine.pic_file )));
         p.add( p1 );
-        // Search box
-        JPanel p3 = new JPanel();
-        p3.setLayout(new BoxLayout(p3, BoxLayout.X_AXIS));
-        p3.add( queryWindow );
-        queryWindow.setFont( queryFont );
-        p.add( p3 );
+        
         p.add( resultPane );
 
-        docTextView.setFont(resultFont);
-        docTextView.setText("\n  The contents of the document will appear here.");
-        docTextView.setLineWrap(true);
-        docTextView.setWrapStyleWord(true);
-        p.add(docViewPane);
         setVisible( true );
 
         /*
@@ -311,7 +293,7 @@ public class SearchGUI extends JFrame {
      *      have been displayed.
      *  @param elapsedTime Shows how long time it took to compute the results.
      */
-    void displayResults( int maxResultsToDisplay, double elapsedTime ) {
+    void displayResults( int maxResultsToDisplay, final double elapsedTime ) {
         displayInfoText( String.format( "Found %d matching document(s) in %.3f seconds", results.size(), elapsedTime ));
         box = new JCheckBox[maxResultsToDisplay];
         int i;
@@ -332,56 +314,7 @@ public class SearchGUI extends JFrame {
             JLabel label = new JLabel(description);
             label.setFont( resultFont );
 
-            MouseAdapter showDocument = new MouseAdapter() {
-                public void mouseClicked(MouseEvent e) {
-                    String fileName = ((JLabel)e.getSource()).getText().split(" ")[1];
-                    String contents = "Displaying contents of " + fileName + "\n" + MARKER + "\n";
-                    String line;
-
-                    Queue<String> fqueue = new LinkedList<>();
-
-                    for (int j = 0, sz = engine.dirNames.size(); j < sz; j++) {
-                        File curDir = new File(engine.dirNames.get(j));
-                        fqueue.offer(curDir.toString());
-
-                        String[] directories = curDir.list(new FilenameFilter() {
-                            @Override
-                            public boolean accept(File current, String name) {
-                                return new File(current, name).isDirectory();
-                            }
-                        });
-
-                        for (String dir : directories) {
-                            fqueue.offer(new File(curDir.toString(), dir).toString());
-                        }
-                    }
-
-                    boolean foundFile = false;
-                    while(!fqueue.isEmpty()) {
-                        String dirName = fqueue.poll();
-                        File file = new File(dirName, fileName);
-
-                        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-                            while ((line = br.readLine()) != null) {
-                                contents += line.trim() + "\n";
-                            }
-                            foundFile = true;
-                            break;
-                        } catch (FileNotFoundException exc) {
-                        } catch (IOException exc) {
-                        } catch (NullPointerException exc) {
-                        }
-                    }
-
-                    if (!foundFile) {
-                        contents += "No file found\n";
-                    }
-
-                    docTextView.setText(contents);
-                    docTextView.setCaretPosition(0);
-                }
-            };
-            label.addMouseListener(showDocument);
+            //label.addMouseListener(showDocument);
             result.add(box[i]);
             result.add(label);
 
@@ -397,10 +330,10 @@ public class SearchGUI extends JFrame {
             display10MoreBut.setFont( resultFont );
             actionButtons.add( display10MoreBut );
             Action display10More = new AbstractAction() {
-                public void actionPerformed( ActionEvent e ) {
-                    displayResults( (int)this.getValue("resCurSize") + 10, elapsedTime );
-                }
-            };
+					public void actionPerformed( ActionEvent e ) {
+						displayResults( (int)this.getValue("resCurSize") + 10, elapsedTime );
+					}
+				};
             display10More.putValue("resCurSize", i);
             display10MoreBut.addActionListener( display10More );
 
@@ -410,10 +343,10 @@ public class SearchGUI extends JFrame {
             displayAllBut.setFont( resultFont );
             actionButtons.add( displayAllBut );
             Action displayAll = new AbstractAction() {
-                public void actionPerformed( ActionEvent e ) {
-                    displayResults( results.size(), elapsedTime );
-                }
-            };
+					public void actionPerformed( ActionEvent e ) {
+						displayResults( results.size(), elapsedTime );
+					}
+				};
             displayAllBut.addActionListener( displayAll );
 
             resultWindow.add(actionButtons);

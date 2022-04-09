@@ -1,11 +1,4 @@
-/**
- *   Computes the Hubs and Authorities for an every document in a query-specific
- *   link graph, induced by the base set of pages.
- *
- *   @author Dmytro Kalpakchi
- */
-
-package ir;
+package com.ir22.booksrec;
 
 import java.util.*;
 import java.io.*;

@@ -1,11 +1,4 @@
-/*  
- *  This file is part of the computer assignment for the
- *  Information Retrieval course at KTH.
- * 
- *  Johan Boye, 2016
- */  
-
-package ir;
+package com.ir22.booksrec;
 
 import java.io.Reader;
 import java.io.IOException;

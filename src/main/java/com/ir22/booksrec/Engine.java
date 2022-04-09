@@ -1,11 +1,4 @@
-/*  
- *   This file is part of the computer assignment for the
- *   Information Retrieval course at KTH.
- * 
- *   Johan Boye, 2017
- */
-
-package ir;
+package com.ir22.booksrec;
 
 import java.util.*;
 import java.io.*;
@@ -16,8 +9,6 @@ import java.io.*;
 public class Engine {
 
     /** The inverted index. */
-    //Index index = new PersistentScalableHashedIndex();
-    //Index index = new PersistentHashedIndex();
 	Index index = new HashedIndex();
 
     /** The indexer creating the search index. */
@@ -34,9 +25,6 @@ public class Engine {
 
     /** The engine GUI. */
     SearchGUI gui;
-
-    /** Directories that should be indexed. */
-    ArrayList<String> dirNames = new ArrayList<String>();
 
     /** Lock to prevent simultaneous access to the index. */
     Object indexLock = new Object();
@@ -73,38 +61,31 @@ public class Engine {
          *   search at the same time we're indexing new files (this might 
          *   corrupt the index).
          */
-		File euclidean = new File("euclidean.txt");
         if (is_indexing) {
             synchronized ( indexLock ) {
                 gui.displayInfoText( "Indexing, please wait..." );
                 long startTime = System.currentTimeMillis();
-                for ( int i=0; i<dirNames.size(); i++ ) {
-                    File dokDir = new File( dirNames.get( i ));
-                    indexer.processFiles( dokDir, is_indexing );
-                }
+				//indexer.processFiles( dokDir, is_indexing );
                 long elapsedTime = System.currentTimeMillis() - startTime;
-				if(!euclidean.exists()){
-					try {
-						FileWriter euclideanWriter  = new FileWriter("euclidean.txt");
-						for(Map.Entry<Integer, HashMap<String,Integer>> entry : indexer.docIndexEuclidean.entrySet()) {
-							Integer docID = entry.getKey();
-							HashMap<String, Integer> docWords = entry.getValue();
-							double length = 0.0;
-							for(Map.Entry<String, Integer> entry2 : docWords.entrySet()) {
-								PostingsList pl2 = index.getPostings(entry2.getKey());
-								Integer count = entry2.getValue();
-								length += count*count* (double) Math.log( (double) index.docLengths.size() / (double) pl2.size())*(double) Math.log( (double) index.docLengths.size() / (double) pl2.size());
-							}
-							length = Math.sqrt(length);
-							euclideanWriter.write(docID + ":" + length + "\n");
+				try {
+					FileWriter euclideanWriter  = new FileWriter("euclidean.txt");
+					for(Map.Entry<Integer, HashMap<String,Integer>> entry : indexer.docIndexEuclidean.entrySet()) {
+						Integer docID = entry.getKey();
+						HashMap<String, Integer> docWords = entry.getValue();
+						double length = 0.0;
+						for(Map.Entry<String, Integer> entry2 : docWords.entrySet()) {
+							PostingsList pl2 = index.getPostings(entry2.getKey());
+							Integer count = entry2.getValue();
+							length += count*count* (double) Math.log( (double) index.docLengths.size() / (double) pl2.size())*(double) Math.log( (double) index.docLengths.size() / (double) pl2.size());
 						}
-						euclideanWriter.close();
-					} catch (IOException io) {
-						io.printStackTrace();
+						length = Math.sqrt(length);
+						euclideanWriter.write(docID + ":" + length + "\n");
 					}
-					System.out.println("Computed euclidean distance.");
+					euclideanWriter.close();
+				} catch (IOException io) {
+					io.printStackTrace();
 				}
-                gui.displayInfoText( String.format( "Indexing done in %.1f seconds.", elapsedTime/1000.0 ));
+                gui.displayInfoText( String.format( "Select books that you have read and liked."));
                 index.cleanup();
             }
         } else {
@@ -121,12 +102,7 @@ public class Engine {
     private void decodeArgs( String[] args ) {
         int i=0, j=0;
         while ( i < args.length ) {
-            if ( "-d".equals( args[i] )) {
-                i++;
-                if ( i < args.length ) {
-                    dirNames.add( args[i++] );
-                }
-            } else if ( "-p".equals( args[i] )) {
+            if ( "-p".equals( args[i] )) {
                 i++;
                 if ( i < args.length ) {
                     patterns_file = args[i++];
@@ -153,8 +129,6 @@ public class Engine {
 
 
     /* ----------------------------------------------- */
-
-
     public static void main( String[] args ) {
         Engine e = new Engine( args );
     }
