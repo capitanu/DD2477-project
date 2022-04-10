@@ -133,6 +133,25 @@ public class SearchGUI extends JFrame {
 
         setVisible( true );
 
+
+		JPanel actionButtons = new JPanel();
+		actionButtons.setLayout(new BoxLayout(actionButtons, BoxLayout.X_AXIS));
+
+		JButton recommend = new JButton( "Find recommendations" );
+		recommend.setFont( resultFont );
+		actionButtons.add( recommend );
+		Action recommend_action = new AbstractAction() {
+				public void actionPerformed( ActionEvent e ) {
+					//displayResults( (int)this.getValue("resCurSize") + 10, elapsedTime );
+				}
+			};
+		recommend.addActionListener( recommend_action );
+
+		actionButtons.add(Box.createRigidArea(new Dimension(5,0)));
+		
+		p.add(actionButtons);
+
+
         /*
          *  Searches for documents matching the string in the search box, and displays
          *  the first few results.
@@ -354,6 +373,38 @@ public class SearchGUI extends JFrame {
         revalidate();
         repaint();
     };
+
+	/**
+     *  Displays the results in the results window.
+     *  @param maxResultsToDisplay The results list is cut off after this many results
+     *      have been displayed.
+     *  @param elapsedTime Shows how long time it took to compute the results.
+     */
+    void displayOptions( int maxResultsToDisplay ) {
+        box = new JCheckBox[maxResultsToDisplay];
+        int i = 0;
+        for (String description : engine.idToDocName.values()){
+
+            box[i] = new JCheckBox();
+            box[i].setSelected( false );
+
+            JPanel result = new JPanel();
+            result.setAlignmentX(Component.LEFT_ALIGNMENT);
+            result.setLayout(new BoxLayout(result, BoxLayout.X_AXIS));
+
+            JLabel label = new JLabel(description);
+            label.setFont( resultFont );
+
+            result.add(box[i]);
+            result.add(label);
+
+            resultWindow.add( result );
+			i++;
+        }
+        revalidate();
+        repaint();
+    };
+
 
 
     /**

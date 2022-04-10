@@ -2,6 +2,14 @@ package com.ir22.booksrec;
 
 import java.util.*;
 import java.io.*;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
 
 /**
  *  This is the main class for the search engine.
@@ -41,14 +49,67 @@ public class Engine {
     /** For persistent indexes, we might not need to do any indexing. */
     boolean is_indexing = true;
 
+	public HashMap<Integer, String> idToDocName = new HashMap<Integer, String>();
+
     /* ----------------------------------------------- */
 
 
+	private static class Book{
+		int rating;
+		String title;
+		String authors;
+		String summary;
+		String genre;
+
+		public int getRating() {
+			return rating;
+		}
+
+		public void setRating(int rating) {
+			this.rating = rating;
+		}
+
+		public String getGenre() {
+			return genre;
+		}
+
+		public void setGenre(String genre) {
+			this.genre = genre;
+		}
+		
+		public String getAuthors() {
+			return authors;
+		}
+
+		public void setAuthors(String authors) {
+			this.authors = authors;
+		}
+		
+		public String getSummary() {
+			return summary;
+		}
+
+		public void setSummary(String summary) {
+			this.summary = summary;
+		}
+		
+		public String getTitle() {
+			return title;
+		}
+
+		public void setTitle(String title) {
+			this.title = title;
+		}
+
+	}
+	
     /**  
      *   Constructor. 
      *   Indexes all chosen directories and files
      */
     public Engine( String[] args ) {
+
+
         decodeArgs( args );
 		speller = new SpellChecker(index, kgIndex);
         indexer = new Indexer( index, kgIndex, patterns_file );
@@ -61,36 +122,37 @@ public class Engine {
          *   search at the same time we're indexing new files (this might 
          *   corrupt the index).
          */
+
+		RestClient restClient = RestClient.builder(new HttpHost("localhost", 9200)).build();
+		ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+		ElasticsearchClient client = new ElasticsearchClient(transport);
         if (is_indexing) {
+
+			gui.displayInfoText( String.format( "Select books that you have read and liked."));
             synchronized ( indexLock ) {
-                gui.displayInfoText( "Indexing, please wait..." );
-                long startTime = System.currentTimeMillis();
+				
 				//indexer.processFiles( dokDir, is_indexing );
-                long elapsedTime = System.currentTimeMillis() - startTime;
-				try {
-					FileWriter euclideanWriter  = new FileWriter("euclidean.txt");
-					for(Map.Entry<Integer, HashMap<String,Integer>> entry : indexer.docIndexEuclidean.entrySet()) {
-						Integer docID = entry.getKey();
-						HashMap<String, Integer> docWords = entry.getValue();
-						double length = 0.0;
-						for(Map.Entry<String, Integer> entry2 : docWords.entrySet()) {
-							PostingsList pl2 = index.getPostings(entry2.getKey());
-							Integer count = entry2.getValue();
-							length += count*count* (double) Math.log( (double) index.docLengths.size() / (double) pl2.size())*(double) Math.log( (double) index.docLengths.size() / (double) pl2.size());
-						}
-						length = Math.sqrt(length);
-						euclideanWriter.write(docID + ":" + length + "\n");
-					}
-					euclideanWriter.close();
-				} catch (IOException io) {
-					io.printStackTrace();
+			
+				int id_search = 29496449;
+				for(int i = 0; i < 151; i++){
+					try {
+						final String tmp = String.valueOf(id_search);
+						Book book = client.get(b -> b
+											   .index("books")
+											   .id(tmp),
+											   Book.class).source();
+						idToDocName.put(id_search, book.getTitle());
+					} catch (Exception e) { continue; }
+					id_search++;
 				}
-                gui.displayInfoText( String.format( "Select books that you have read and liked."));
-                index.cleanup();
-            }
+
+			}
+			index.cleanup();
         } else {
-            gui.displayInfoText( "Index is loaded from disk" );
+            gui.displayInfoText( "Index already exists" );
         }
+
+		gui.displayOptions(idToDocName.size());
     }
 
 

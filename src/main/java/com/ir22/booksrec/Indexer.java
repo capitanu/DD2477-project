@@ -44,9 +44,7 @@ public class Indexer {
 	public int getLastDocID(){
 		return lastDocID;
 	}
-
-
-
+	
     /**
      *  Tokenizes and indexes the file @code{f}. If <code>f</code> is a directory,
      *  all its files and subdirectories are recursively processed.
