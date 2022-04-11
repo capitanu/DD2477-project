@@ -127,11 +127,9 @@ public class Engine {
 		ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
 		ElasticsearchClient client = new ElasticsearchClient(transport);
         if (is_indexing) {
-
 			gui.displayInfoText( String.format( "Select books that you have read and liked."));
             synchronized ( indexLock ) {
 				
-				//indexer.processFiles( dokDir, is_indexing );
 			
 				int id_search = 29496449;
 				for(int i = 0; i < 151; i++){
@@ -142,8 +140,12 @@ public class Engine {
 											   .id(tmp),
 											   Book.class).source();
 						idToDocName.put(id_search, book.getTitle());
+						
+						indexer.processFiles( book.getSummary(), book.getTitle(), id_search, is_indexing );
+
 					} catch (Exception e) { continue; }
 					id_search++;
+
 				}
 
 			}

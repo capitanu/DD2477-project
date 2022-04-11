@@ -3,7 +3,14 @@ package com.ir22.booksrec;
 import java.io.*;
 import java.util.*;
 import java.nio.charset.*;
-
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
 
 /**
  *   Processes a directory structure and indexes all PDF and text files.
@@ -22,8 +29,7 @@ public class Indexer {
     /** The patterns matching non-standard words (e-mail addresses, etc.) */
     String patterns_file;
 
-	public HashMap<Integer, HashMap<String, Integer>> docIndexEuclidean = new HashMap<Integer, HashMap<String, Integer>>();
-
+	ElasticsearchClient client;
 
     /* ----------------------------------------------- */
 
@@ -33,6 +39,11 @@ public class Indexer {
         this.index = index;
         this.kgIndex = kgIndex;
         this.patterns_file = patterns_file;
+
+		RestClient restClient = RestClient.builder(new HttpHost("localhost", 9200)).build();
+		ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+		this.client = new ElasticsearchClient(transport);
+
     }
 
 
@@ -49,55 +60,26 @@ public class Indexer {
      *  Tokenizes and indexes the file @code{f}. If <code>f</code> is a directory,
      *  all its files and subdirectories are recursively processed.
      */
-    public void processFiles( File f, boolean is_indexing ) {
+    public void processFiles( String summary, String title, int docID, boolean is_indexing ) {
         // do not try to index fs that cannot be read
-		File euclidean = new File("euclidean.txt");
         if (is_indexing) {
-            if ( f.canRead() ) {
+			try {
+				Reader reader = new StringReader(summary);
+				Tokenizer tok = new Tokenizer( reader, true, false, true, patterns_file );
 
-                if ( f.isDirectory() ) {
-                    String[] fs = f.list();
-                    // an IO error could occur
-                    if ( fs != null ) {
-                        for ( int i=0; i<fs.length; i++ ) {
-                            processFiles( new File( f, fs[i] ), is_indexing );
-                        }
-                    }
-                } else {
-                    // First register the document and get a docID
-                    int docID = generateDocID();
-                    if ( docID%1000 == 0 ) System.err.println( "Indexed " + docID + " files" );
-                    try {
-                        Reader reader = new InputStreamReader( new FileInputStream(f), StandardCharsets.UTF_8 );
-                        Tokenizer tok = new Tokenizer( reader, true, false, true, patterns_file );
-
-                        int offset = 0;
-                        while ( tok.hasMoreTokens() ) {
-                            String token = tok.nextToken();
-                            insertIntoIndex( docID, token, offset++);
-
-							if(!euclidean.exists()){
-								if(docIndexEuclidean.get(docID) == null){
-									docIndexEuclidean.put(docID, new HashMap<String, Integer>());
-								}
-								if(docIndexEuclidean.get(docID).get(token) == null){
-									docIndexEuclidean.get(docID).put(token, 1);
-								}
-								else {
-									docIndexEuclidean.get(docID).replace(token, docIndexEuclidean.get(docID).get(token)+1);
-								}
-							}
-                        }
-                        index.docNames.put( docID, f.getPath() );
-                        index.docLengths.put( docID, offset );
-                        reader.close();
-                    } catch ( IOException e ) {
-                        System.err.println( "Warning: IOException during indexing." );
-                    }
-                }
-            }
-        }
-    }
+				int offset = 0;
+				while ( tok.hasMoreTokens() ) {
+					String token = tok.nextToken();
+					insertIntoIndex( docID, token, offset++);
+				}
+				index.docNames.put( docID, title );
+				index.docLengths.put( docID, offset );
+				reader.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 
     /* ----------------------------------------------- */
