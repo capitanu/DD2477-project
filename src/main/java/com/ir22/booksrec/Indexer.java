@@ -60,20 +60,21 @@ public class Indexer {
      *  Tokenizes and indexes the file @code{f}. If <code>f</code> is a directory,
      *  all its files and subdirectories are recursively processed.
      */
-    public void processFiles( String summary, String title, int docID, boolean is_indexing ) {
+    public void processText( ElasticsearchClient client, String index, String text, int docID, boolean is_indexing ) {
         // do not try to index fs that cannot be read
         if (is_indexing) {
 			try {
-				Reader reader = new StringReader(summary);
+				Reader reader = new StringReader(text);
 				Tokenizer tok = new Tokenizer( reader, true, false, true, patterns_file );
 
 				int offset = 0;
 				while ( tok.hasMoreTokens() ) {
 					String token = tok.nextToken();
-					insertIntoIndex( docID, token, offset++);
+					ESQuerier.addPostingsEntry(client, index, token, docID, offset++);
+					//insertIntoIndex( docID, token, offset++);
 				}
-				index.docNames.put( docID, title );
-				index.docLengths.put( docID, offset );
+				//index.docNames.put( docID, title );
+				//index.docLengths.put( docID, offset );
 				reader.close();
 			} catch (Exception e) {
 				e.printStackTrace();

@@ -127,7 +127,7 @@ public class Engine {
 		ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
 		ElasticsearchClient client = new ElasticsearchClient(transport);
         if (is_indexing) {
-			gui.displayInfoText( String.format( "Select books that you have read and liked."));
+			gui.displayInfoText( String.format( "Indexing..."));
             synchronized ( indexLock ) {
 				
 			
@@ -140,8 +140,10 @@ public class Engine {
 											   .id(tmp),
 											   Book.class).source();
 						idToDocName.put(id_search, book.getTitle());
-						
-						indexer.processFiles( book.getSummary(), book.getTitle(), id_search, is_indexing );
+
+						indexer.processText(client, "summary-index", book.getSummary(), id_search, is_indexing );
+						indexer.processText(client, "genre-index", book.getGenre(), id_search, is_indexing );
+						indexer.processText(client, "title-index", book.getTitle(), id_search, is_indexing );
 
 					} catch (Exception e) { continue; }
 					id_search++;
@@ -153,6 +155,8 @@ public class Engine {
         } else {
             gui.displayInfoText( "Index already exists" );
         }
+
+		gui.displayInfoText( String.format( "Select books that you have read and liked."));
 
 		gui.displayOptions(idToDocName.size());
     }

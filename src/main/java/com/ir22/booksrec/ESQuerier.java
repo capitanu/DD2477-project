@@ -87,7 +87,7 @@ public class ESQuerier {
 		return null;
 	}
 
-	public static void addPostingsEntry(ElasticsearchClient client, String index, String token, PostingsEntry pe) {
+	public static void addPostingsEntry(ElasticsearchClient client, String index, String token, int docID, int offset) {
 
 		try {
 			List<Hit<PostingsList2>> search = client.search(s -> s
@@ -103,8 +103,10 @@ public class ESQuerier {
 			if(search.size() == 0) {
 				PostingsList2 pl2 = new PostingsList2();
 				PostingsList2.PostingsEntry pe2 = new PostingsList2.PostingsEntry();
-				pe2.setDocID(pe.docID);
-				pe2.setOffsetlist(pe.offsetlist);
+				pe2.setDocID(docID);
+				ArrayList<Integer> offsetlist = new ArrayList<Integer>();
+				offsetlist.add(offset);
+				pe2.setOffsetlist(offsetlist);
 				pl2.list.add(pe2);
 				pl2.setWord(token);
 				client.index(b -> b
@@ -114,17 +116,38 @@ public class ESQuerier {
 							 );
 			} else {
 				PostingsList2 pl2 = search.get(0).source();
-				PostingsList2.PostingsEntry pe2 = new PostingsList2.PostingsEntry();				
-				pe2.setDocID(pe.docID);
-				pe2.setOffsetlist(pe.offsetlist);
-				pl2.list.add(pe2);
+				PostingsList2.PostingsEntry pe2 = new PostingsList2.PostingsEntry();
+				boolean test = false;
+				for(PostingsList2.PostingsEntry it : pl2.list) {
+					if(docID == it.getDocID()){
+						test = true;
+						if(!it.offsetlist.contains(offset)){
+							it.offsetlist.add(offset);
+							client.index(b -> b
+										 .index(index)
+										 .document(pl2)
+										 .id(search.get(0).id())
+										 .refresh(Refresh.True)
+										 );
+						} else {
+							break;
+						}
+					}
+				}
+				if(test == false){
+					pe2.setDocID(docID);
+					ArrayList<Integer> offsetlist = new ArrayList<Integer>();
+					offsetlist.add(offset);
+					pe2.setOffsetlist(offsetlist);
+					pl2.list.add(pe2);
 
-				client.index(b -> b
-							 .index(index)
-							 .document(pl2)
-							 .id(search.get(0).id())
-							 .refresh(Refresh.True)
-							 );
+					client.index(b -> b
+								 .index(index)
+								 .document(pl2)
+								 .id(search.get(0).id())
+								 .refresh(Refresh.True)
+								 );
+				}
 			}
 			
 		} catch (Exception e) {}
@@ -145,7 +168,7 @@ public class ESQuerier {
 		pe.offsetlist.add(127);
 		pe.offsetlist.add(503);
 		
-		addPostingsEntry(client, index, "them", pe);
+		addPostingsEntry(client, index, "them", 14, 19);
 		
 	}
 }
