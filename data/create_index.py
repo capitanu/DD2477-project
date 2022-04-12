@@ -29,8 +29,8 @@ mapping = {
 }
 
     
-if not es.indices.exists(index="index"):
-    es.indices.create(index="index", body = mapping)
+if not es.indices.exists(index="authors-index"):
+    es.indices.create(index="authors-index", body = mapping)
 
 
 

@@ -7,8 +7,8 @@ import java.util.Comparator;
 public class PostingsList {
     
     /** The postings list */
-    private ArrayList<PostingsEntry> list = new ArrayList<PostingsEntry>();
-
+    ArrayList<PostingsEntry> list = new ArrayList<PostingsEntry>();
+	String word;
 
     /** Number of postings in this list. */
     public int size() {
@@ -24,10 +24,10 @@ public class PostingsList {
 		StringBuilder sb = new StringBuilder();
 		for(PostingsEntry pe : list){
 			sb.append("{");
-			sb.append("di : ");
+			sb.append("docID : ");
 			sb.append(pe.docID);
 			sb.append(", ");
-			sb.append("of : ");
+			sb.append("offsetlist : ");
 			sb.append("");
 			sb.append(pe.offsetlist.toString());
 			sb.append("}, ");

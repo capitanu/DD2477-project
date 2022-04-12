@@ -8,6 +8,6 @@ build:
 
 run:
 	@java -cp target/booksrec-1.0-SNAPSHOT-jar-with-dependencies.jar -Xmx4g com.ir22.booksrec.Engine -l logo.png -p patterns.txt
-
+#	@java -cp target/booksrec-1.0-SNAPSHOT-jar-with-dependencies.jar -Xmx4g com.ir22.booksrec.ESQuerier
 test:
 	@mvn test
