@@ -85,5 +85,5 @@ def meta_data_loader(es, book):
 if __name__ == '__main__':
     es_helper = ESClientManager()
     book_index = Book()
-    # book_loader(es_helper, book_index, 29496494)
+    book_loader(es_helper, book_index, 29496494)
     meta_data_loader(es_helper, book_index)

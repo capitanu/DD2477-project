@@ -2,6 +2,8 @@ import copy
 
 import numpy
 
+from helper.loader import MAX_NUM
+
 
 class TfIdfHelper:
     IDF = dict()
@@ -14,7 +16,7 @@ class TfIdfHelper:
 
     def _add_entry(self, word, val):
         if word not in self.IDF:
-            tmp = numpy.log(100 / (1 + val))
+            tmp = numpy.log(MAX_NUM / (1 + val))
             self.IDF[word] = tmp
 
     def _run(self):

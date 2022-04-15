@@ -62,7 +62,7 @@ def recommendation(*args):
     # Sorting the recommendation basis the score
     rec_tmp = sorted(rec_tmp, key=lambda tup: tup[1], reverse=True)
     resp = {
-        "no_recommendations": len(rec_tmp)
+        "no_recommendations": len(rec_tmp),
         "hits": list()
     }
     for doc_id, score in rec_tmp:
