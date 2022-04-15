@@ -5,7 +5,7 @@ import urllib.request
 import re
 from elasticsearch import Elasticsearch
 
-es = Elasticsearch()
+es = Elasticsearch("http://localhost:9200")
 if es.ping():
     print('Successfully connected to elasticsearch')
 else:

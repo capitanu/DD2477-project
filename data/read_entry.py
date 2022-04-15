@@ -2,10 +2,13 @@
 
 from elasticsearch import Elasticsearch
 
-es = Elasticsearch()
+es = Elasticsearch("http://localhost:9200")
 
+resp = es.search(index="books", body={
+    'size': 10,
+    'query': {
+        'match_all': {}
+    }
+})
 
-resp = es.search(index="index", body={"query": {"bool": {"must": [{"bool": {"should": [{"match_phrase": {"word": "the"}}]}}]}}})
-
-print(resp['hits']['hits'][0])
-
+print(resp['hits']['hits'][1])
