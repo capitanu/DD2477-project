@@ -8,7 +8,7 @@ from esQueries.indices import Book, PostingList, IDF, TfIDF
 from helper.inv_index import InvIndex
 from helper.tfidf import TfIdfHelper
 
-MAX_NUM = 100
+from helper.config import MAX_NUM
 
 
 def book_loader(es, book, start_index):
@@ -34,6 +34,7 @@ def book_loader(es, book, start_index):
                     book_genre.add(str(el.text))
                 entry = {
                     "title": str(book_title),
+                    "title_suggestion": str(book_title),
                     "authors": str(book_authors),
                     "summary": str(book_summary),
                     "rating": book_rating,

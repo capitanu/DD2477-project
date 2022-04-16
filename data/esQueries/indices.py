@@ -22,6 +22,9 @@ class Book(Index):
             "title": {
                 "type": "text"
             },
+            "title_suggestion": {
+                "type": "completion",
+            },
             "authors": {
                 "type": "text"
             },

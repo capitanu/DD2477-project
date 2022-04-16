@@ -41,3 +41,7 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# frontend stuff
+data/frontend/dist
+data/frontend/node_modules
