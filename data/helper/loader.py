@@ -87,5 +87,5 @@ if __name__ == '__main__':
     es_helper = ESClientManager()
     book_index = Book()
     # TODO: Some bug running both lines together
-    book_loader(es_helper, book_index, 29496494)
+    # book_loader(es_helper, book_index, 29496494)
     meta_data_loader(es_helper, book_index)

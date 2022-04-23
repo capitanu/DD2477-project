@@ -1,3 +1,5 @@
+from elasticsearch.helpers import scan
+
 from esQueries import ESClientManager
 from esQueries.indices import Book, TfIDF
 
@@ -58,7 +60,7 @@ class BookCRUD(ESClientManager):
             for title in args
         ]
 
-        mean_dict = compute_mean_vector([_['_source']['tfidf_vector'] for i in doc_id for _ in scan(es.client, index=tfidf_index.name, query={
+        mean_dict = compute_mean_vector([_['_source']['tfidf_vector'] for i in doc_id for _ in scan(es.client, index=self.tfidf.name, query={
             'query': {"match": {"docId": f"{i}"}}})])
 
         rec_tmp = list()
