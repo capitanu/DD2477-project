@@ -73,7 +73,7 @@ class InvIndex:
         # Iterating though documents
         for tmp_ix, rec in enumerate(self.records):
             doc_id = rec['_id']
-            # TODO: Change the below regex rule as it does not do it perfectly!
+            # TODO: Change the regex rule !
             # Splits the summary to token
             list_tmp = [_ for _ in re.split("\s|(?<!\d)[,!.](?!\d)", rec['_source']['summary']) if _ != '']
             for off_set, s in enumerate(list_tmp):
