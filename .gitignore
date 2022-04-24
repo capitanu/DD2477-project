@@ -43,5 +43,8 @@ buildNumber.properties
 .classpath
 
 # frontend stuff
-data/frontend/dist
-data/frontend/node_modules
+src/frontend/dist
+src/frontend/node_modules
+
+# Intelij for Danny
+.idea/
