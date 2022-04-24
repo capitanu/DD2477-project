@@ -32,7 +32,7 @@ class ESClientManager:
         ]
 
     def get_by_id(self, index, _id):
-        return self.client.get(index = index.name, id=_id)
+        return self.client.get(index=index.name, id=_id)
 
     def get_all_doc(self, index):
         return [_ for _ in scan(self.client, index=index.name, query={"query": {"match_all": {}}})]

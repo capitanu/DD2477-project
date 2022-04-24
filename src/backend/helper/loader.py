@@ -3,19 +3,19 @@ from urllib import request
 from bs4 import BeautifulSoup
 from langdetect import detect
 
-from esQueries import ESClientManager
-from esQueries.indices import Book, PostingList, IDF, TfIDF
-from helper.inv_index import InvIndex
-from helper.tfidf import TfIdfHelper
+from backend.esQueries import ESClientManager
+from backend.esQueries.indices import Book, PostingList, IDF, TfIDF
+from backend.helper.inv_index import InvIndex
+from backend.helper.tfidf import TfIdfHelper
 
-from helper.config import MAX_NUM
+from backend.helper.config import MAX_NUM
 
 
 def book_loader(es, book, start_index):
     es.create_index(book)
     count = 0
     i = 0
-    while count <= MAX_NUM:
+    while count < MAX_NUM:
         with request.urlopen("https://www.goodreads.com/book/show/{}".format(start_index + i)) as fp:
             data = fp.read().decode("utf8")
 
@@ -87,5 +87,7 @@ if __name__ == '__main__':
     es_helper = ESClientManager()
     book_index = Book()
     # TODO: Some bug running both lines together
-    # book_loader(es_helper, book_index, 29496494)
+    book_loader(es_helper, book_index, 29496494)
+    es_helper.client.transport.close()
+    es_helper = ESClientManager()
     meta_data_loader(es_helper, book_index)

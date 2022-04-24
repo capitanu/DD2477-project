@@ -2,7 +2,7 @@ import copy
 
 import numpy
 
-from helper.config import MAX_NUM
+from backend.helper.config import MAX_NUM
 
 
 class TfIdfHelper:

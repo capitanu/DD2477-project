@@ -1,7 +1,7 @@
 from elasticsearch.helpers import scan
 
-from esQueries import ESClientManager
-from esQueries.indices import Book, TfIDF
+from backend.esQueries import ESClientManager
+from backend.esQueries.indices import Book, TfIDF
 
 
 def compute_mean_vector(args):

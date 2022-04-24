@@ -3,7 +3,7 @@ import json
 from flask import Flask, request
 from flask_cors import CORS
 
-from esQueries.operations import BookCRUD
+from backend.esQueries.operations import BookCRUD
 
 book_crud = BookCRUD()
 
