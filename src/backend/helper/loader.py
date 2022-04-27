@@ -3,12 +3,12 @@ from urllib import request
 from bs4 import BeautifulSoup
 from langdetect import detect
 
-from backend.esQueries import ESClientManager
-from backend.esQueries.indices import Book, PostingList, IDF, TfIDF
-from backend.helper.inv_index import InvIndex
-from backend.helper.tfidf import TfIdfHelper
+from esQueries import ESClientManager
+from esQueries.indices import Book, PostingList, PostingList_genre, IDF, IDF_genre, TfIDF
+from helper.inv_index import InvIndex, InvIndexGenre
+from helper.tfidf import TfIdfHelper, TfIdfHelperGenre
 
-from backend.helper.config import MAX_NUM
+from helper.config import MAX_NUM
 
 
 def book_loader(es, book, start_index):
@@ -50,23 +50,37 @@ def book_loader(es, book, start_index):
 
 
 def meta_data_loader(es, book):
-    es.create_index(book)
     pos_index = PostingList()
+    pos_index_genre = PostingList_genre()
     tfidf_index = TfIDF()
     idf_index = IDF()
+    idf_index_genres = IDF_genre()
+    
+    es.create_index(book)
     es.create_index(pos_index)
+    es.create_index(pos_index_genre)
     es.create_index(tfidf_index)
     es.create_index(idf_index)
-    inv_index = InvIndex(es, book)
-
+    es.create_index(idf_index_genres)
+    
+    inv_index = InvIndex(es, book, 'summary', "(\s|(?<!\d)[,!.](?!\d))+")
+    inv_index_genre = InvIndexGenre(es, book, 'genre', ", ")
+    
     for k, v in inv_index.get_inv_index().items():
         es.add_entries(pos_index, _id=None, doc={
             "word": k,
             "posting_list": v
         })
+    for k, v in inv_index_genre.get_inv_index().items():
+        es.add_entries(pos_index_genre, _id=None, doc={
+            "word": k,
+            "posting_list": v
+        })
+
 
     # Creating tfidf vector
     tfidf_helper = TfIdfHelper(es, pos_index, inv_index.TF)
+    tfidf_genre_helper = TfIdfHelperGenre(es, pos_index_genre, inv_index_genre.TF)
 
     for k, v in tfidf_helper.IDF.items():
         es.add_entries(idf_index, _id=None, doc={
@@ -74,20 +88,35 @@ def meta_data_loader(es, book):
             "idf_score": v
         })
 
+    for k, v in tfidf_genre_helper.IDF.items():
+        es.add_entries(idf_index_genres, _id=None, doc={
+            "word": k,
+            "idf_score": v
+        })
+
+
     for k, tf_vector in tfidf_helper.TF_IDF.items():
         title = es.get_by_id(book, k)['_source']['title']
-        es.add_entries(tfidf_index, _id=None, doc={
-            "docId": k,
-            "title": title,
-            "tfidf_vector": [{"word": word, "tfIdf": val} for word, val in tf_vector.items()]
-        })
+        try:
+            es.add_entries(tfidf_index, _id=None, doc={
+                "docId": k,
+                "title": title,
+                "tfidf_vector": [{"word": word, "tfIdf": val} for word, val in tf_vector.items()],
+                "tfidf_vector_genre": [{"word": word, "tfIdf": val} for word, val in tfidf_genre_helper.TF_IDF[k].items()]
+            })
+        except:
+            es.add_entries(tfidf_index, _id=None, doc={
+                "docId": k,
+                "title": title,
+                "tfidf_vector": [{"word": word, "tfIdf": val} for word, val in tf_vector.items()],
+            })
 
 
 if __name__ == '__main__':
     es_helper = ESClientManager()
     book_index = Book()
     # TODO: Some bug running both lines together
-    book_loader(es_helper, book_index, 29496494)
-    es_helper.client.transport.close()
-    es_helper = ESClientManager()
+#    book_loader(es_helper, book_index, 29496494)
+#    es_helper.client.transport.close()
+#    es_helper = ESClientManager()
     meta_data_loader(es_helper, book_index)

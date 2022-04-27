@@ -1,7 +1,7 @@
 from elasticsearch.helpers import scan
 
-from backend.esQueries import ESClientManager
-from backend.esQueries.indices import Book, TfIDF
+from esQueries import ESClientManager
+from esQueries.indices import Book, TfIDF
 
 
 def compute_mean_vector(args):
@@ -62,6 +62,9 @@ class BookCRUD(ESClientManager):
 
         mean_dict = compute_mean_vector([_['_source']['tfidf_vector'] for i in doc_id for _ in scan(es.client, index=self.tfidf.name, query={
             'query': {"match": {"docId": f"{i}"}}})])
+        
+        mean_dict_genre = compute_mean_vector([_['_source']['tfidf_vector_genre'] for i in doc_id for _ in scan(es.client, index=self.tfidf.name, query={
+            'query': {"match": {"docId": f"{i}"}}})])
 
         rec_tmp = list()
         for rec in es.get_all_doc(self.tfidf):
@@ -72,8 +75,18 @@ class BookCRUD(ESClientManager):
                     for tmp in rec['_source']['tfidf_vector']
                 }
                 intersection_key = dict_tmp.keys() & mean_dict.keys()
-                # TODO: Dive by the euclidean distance value
-                rec_tmp.append((rec['_source']['docId'], sum(dict_tmp[k] * mean_dict[k] for k in intersection_key)))
+
+                try:
+                    dict_tmp_genre = {
+                        tmp['word']: tmp['tfIdf']
+                        for tmp in rec['_source']['tfidf_vector_genre']
+                    }
+                    intersection_key_genre = dict_tmp_genre.keys() & mean_dict_genre.keys()
+                    rec_tmp.append((rec['_source']['docId'], sum(dict_tmp_genre[k] * mean_dict_genre[k] for k in intersection_key_genre) + sum(dict_tmp[k] * mean_dict[k] for k in intersection_key)))
+                except:
+                    rec_tmp.append((rec['_source']['docId'], sum(dict_tmp[k] * mean_dict[k] for k in intersection_key)))
+
+                # TODO: Divide by the euclidean distance value
 
         # Sorting the recommendation basis the score
         rec_tmp = sorted(rec_tmp, key=lambda tup: tup[1], reverse=True)
@@ -81,7 +94,12 @@ class BookCRUD(ESClientManager):
             "no_recommendations": len(rec_tmp),
             "hits": list()
         }
+        i = 0
         for doc_id, score in rec_tmp:
+            if i == 10 or score < 150:
+                resp['no_recommendations'] = i+1
+                return resp
+
             tmp = es.client.search(index=self.index.name, query={
                 "bool": {
                     "must": {
@@ -98,8 +116,7 @@ class BookCRUD(ESClientManager):
                 "rating": tmp['rating'],
                 "genre": tmp['genre']
             })
-
-        return resp
+            i += 1
 
     def suggest(self, title):
         return self.client.search(

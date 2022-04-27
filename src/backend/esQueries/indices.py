@@ -62,6 +62,24 @@ class PostingList(Index):
     def __init__(self):
         super().__init__("inverted_index")
 
+class PostingList_genre(Index):
+    mapping = {
+        "properties": {
+            "word": {
+                "type": "text"
+            },
+            "posting_list": {
+                "properties": {
+                    "docId": {"type": "integer"},
+                    "offSetArray": {"type": "integer"}
+                }
+            }
+        }
+    }
+
+    def __init__(self):
+        super().__init__("inverted_index_genre")
+        
 
 class IDF(Index):
     mapping = {
@@ -78,6 +96,21 @@ class IDF(Index):
     def __init__(self):
         super().__init__("idf_index")
 
+class IDF_genre(Index):
+    mapping = {
+        "properties": {
+            "word": {
+                "type": "text"
+            },
+            "idf_score": {
+                "type": "double"
+            }
+        }
+    }
+
+    def __init__(self):
+        super().__init__("idf_index_genre")
+
 
 class TfIDF(Index):
     mapping = {
@@ -91,9 +124,16 @@ class TfIDF(Index):
             "tfidf_vector": {
                 "properties": {
                     "word": {"type": "text"},
-                    "tfIdf": {"type": "double"}
+                    "tfIdf": {"type": "double"},
+                }
+            },
+            "tfidf_vector_genre": {
+                "properties": {
+                    "word": {"type": "text"},
+                    "tfIdf": {"type": "double"},
                 }
             }
+
         }
     }
 
