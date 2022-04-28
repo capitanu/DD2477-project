@@ -84,6 +84,10 @@ def meta_data_loader(es, book):
 
 
 if __name__ == '__main__':
+    # import nltk
+    # nltk.download('wordnet')
+    # nltk.download('omw-1.4')
+
     es_helper = ESClientManager()
     book_index = Book()
     # TODO: Some bug running both lines together

@@ -9,7 +9,7 @@
         </el-container>
         <el-container direction="vertical" class="search-line">
           <el-row :gutter="20">
-            <el-col :span="21">
+            <el-col :span="18">
               <!-- <el-input v-model="inp" placeholder="search any book"></el-input> -->
               <el-autocomplete
                 class="autocomplete-display"
@@ -24,6 +24,27 @@
               <el-button style="width: 100%" type="primary" @click.native="search"
                 >Search</el-button
               >
+            </el-col>
+            <el-col :span="3">
+              <el-button style="width: 100%" type="primary" @click.native="recommend"
+                >Recommend</el-button
+              >
+            </el-col>
+          </el-row>
+
+          <el-row>
+            <el-col :span="24">
+              <div class="selected-tags">
+                <el-tag
+                  v-for="tag in tags"
+                  :key="tag"
+                  closable
+                  type="warning"
+                  @close="handleClose(tag)"
+                >
+                  {{ tag }}
+                </el-tag>
+              </div>
             </el-col>
           </el-row>
         </el-container>
@@ -75,37 +96,63 @@ export default {
       result: {
         data: [],
       },
+      tags: [], // { title: "aa" }
     };
   },
+  watch: {
+    // result: function (res) {
+    //   var chosen = res.data.filter((item) => item.checked);
+    //   for (let i = 0; i < chosen.length; i++) {
+    //     if (!this.tags.includes({name: chosen[i]._source.title})) {
+    //       this.tags.push()
+    //     }
+    //   }
+    // },
+  },
   methods: {
-    search: async function () {
-      var resp;
+    recommend: async function () {
       var chosen = this.result.data.filter((item) => item.checked);
+      var titles = chosen.map((item) => item._source.title);
+      chosen = [...new Set([...this.tags, ...titles])]; // list of string
+      this.tags = []; // clear tags
+      this.inp = "";
+
       if (chosen.length == 0) {
-        resp = await axios({
-          method: "post",
-          url: "http://localhost:8092/query",
-          data: { title: this.inp },
-        });
-        console.log(resp);
-        this.result.data = resp.data.hits;
-      } else {
-        console.log(chosen);
-        resp = await axios({
-          method: "post",
-          url: "http://localhost:8092/recommend",
-          data: { titles: chosen.map((item) => item._source.title) },
-        });
-        console.log(resp);
-        this.result.data = resp.data.hits.map((item) => ({
+        return;
+      }
+
+      console.log(chosen);
+      var resp = await axios({
+        method: "post",
+        url: "http://localhost:8092/recommend",
+        data: { titles: chosen },
+      });
+      console.log(resp);
+      this.result.data = resp.data.hits
+        .map((item) => ({
           _id: item.docId,
           _source: {
             title: item.title,
             summary: item.summary,
             genre: item.genre,
           },
-        }));
-      }
+        }))
+        .filter((v, i, a) => a.findIndex((v2) => v2._id === v._id) === i);
+    },
+    search: async function () {
+      var resp;
+      var chosen = this.result.data.filter((item) => item.checked);
+      var titles = chosen.map((item) => item._source.title);
+      this.tags = [...new Set([...this.tags, ...titles])];
+      console.log(this.tags);
+
+      resp = await axios({
+        method: "post",
+        url: "http://localhost:8092/query",
+        data: { title: this.inp },
+      });
+      console.log(resp);
+      this.result.data = resp.data.hits;
     },
     suggest: async function (queryString, cb) {
       var resp = await axios({
@@ -123,6 +170,12 @@ export default {
       cb(options);
     },
     handleSelect: function () {},
+    handleClose: function (tag) {
+      const index = this.tags.indexOf(tag);
+      if (index > -1) {
+        this.tags.splice(index, 1); // 2nd parameter means remove one item only
+      }
+    },
   },
   mounted(item) {
     console.log(item);
@@ -197,5 +250,21 @@ body {
 
 .autocomplete-display {
   display: block;
+}
+
+.selected-tags {
+  margin-top: 10px;
+}
+
+/* .tag-container {
+  margin: 0 4px;
+} */
+
+.el-tag {
+  margin-bottom: 6px;
+}
+
+.el-tag + .el-tag {
+  margin-left: 10px;
 }
 </style>
