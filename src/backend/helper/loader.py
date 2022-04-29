@@ -10,7 +10,6 @@ from helper.tfidf import TfIdfHelper, TfIdfHelperGenre
 
 from helper.config import MAX_NUM
 
-
 def book_loader(es, book, start_index):
     es.create_index(book)
     count = 0
@@ -116,7 +115,7 @@ if __name__ == '__main__':
     es_helper = ESClientManager()
     book_index = Book()
     # TODO: Some bug running both lines together
-#    book_loader(es_helper, book_index, 29496494)
-#    es_helper.client.transport.close()
-#    es_helper = ESClientManager()
+    book_loader(es_helper, book_index, 29496494)
+    es_helper.client.transport.close()
+    es_helper = ESClientManager()
     meta_data_loader(es_helper, book_index)

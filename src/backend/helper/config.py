@@ -1,1 +1,1 @@
-MAX_NUM = 100
+MAX_NUM = 10000
