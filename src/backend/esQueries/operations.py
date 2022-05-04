@@ -97,8 +97,8 @@ class BookCRUD(ESClientManager):
         }
         i = 0
         for doc_id, score in rec_tmp:
-            if i == 10 or score < 150:
-                resp['no_recommendations'] = i+1
+            if i == 3:
+                resp['no_recommendations'] = i
                 return resp
 
             tmp = es.client.search(index=self.index.name, query={

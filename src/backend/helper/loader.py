@@ -115,7 +115,7 @@ if __name__ == '__main__':
     es_helper = ESClientManager()
     book_index = Book()
     # TODO: Some bug running both lines together
-#    book_loader(es_helper, book_index, 29496600)
+#    book_loader(es_helper, book_index, 29496449)
 #    es_helper.client.transport.close()
 #    es_helper = ESClientManager()
     meta_data_loader(es_helper, book_index)
